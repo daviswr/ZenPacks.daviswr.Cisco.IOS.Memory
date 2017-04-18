@@ -3,13 +3,13 @@
 # or saved.  Do not modify them directly here.
 # NB: PACKAGES is deprecated
 NAME = "ZenPacks.daviswr.Cisco.IOS.Memory"
-VERSION = "1.0.0dev"
-AUTHOR = "Your Name Here"
-LICENSE = ""
+VERSION = "0.7.0"
+AUTHOR = "Wes Davis"
+LICENSE = "MIT"
 NAMESPACE_PACKAGES = ['ZenPacks', 'ZenPacks.daviswr', 'ZenPacks.daviswr.Cisco', 'ZenPacks.daviswr.Cisco.IOS']
 PACKAGES = ['ZenPacks', 'ZenPacks.daviswr', 'ZenPacks.daviswr.Cisco', 'ZenPacks.daviswr.Cisco.IOS', 'ZenPacks.daviswr.Cisco.IOS.Memory']
 INSTALL_REQUIRES = ['ZenPacks.zenoss.ZenPackLib']
-COMPAT_ZENOSS_VERS = ""
+COMPAT_ZENOSS_VERS = ">=4.2.5"
 PREV_ZENPACK_NAME = ""
 # STOP_REPLACEMENTS
 ################################

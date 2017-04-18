@@ -1,1 +1,157 @@
 name: ZenPacks.daviswr.Cisco.IOS.Memory
+
+class_relationships:
+  - Products.ZenModel.Device.Device(memoryPools) 1:MC MemoryPool(cisco)
+
+classes:
+  MemoryPool:
+    base: [zenpacklib.Component]
+    label: Memory Pool
+
+    properties:
+      DEFAULTS:
+        type: int
+        grid_display: true
+        details_display: true
+
+      alternate:
+        label: Alternate Pool
+        short_label: Alt Pool
+        type: string
+        grid_display: false
+        order: 1
+
+      free:
+        label: Free
+        renderer: Zenoss.render.bytesString
+        datapoint: ciscoMemoryPoolFree_ciscoMemoryPoolFree
+        order: 4
+
+      used:
+        label: Used
+        renderer: Zenoss.render.bytesString
+        datapoint: ciscoMemoryPoolUsed_ciscoMemoryPoolUsed
+        order: 3
+
+      size:
+        label: Size
+        renderer: Zenoss.render.bytesString
+        order: 2
+
+      valid:
+        label: Valid
+        type: boolean
+        default: true
+        enum: {true: "clear", false: "critical"}
+        renderer: Zenoss.render.severity
+        details_display: false
+        label_width: 35
+        content_width: 35
+        order: 5
+
+device_classes:
+  /:
+    remove: false
+    templates:
+      MemoryPool:
+        description: Memory pool utilization using CISCO-MEMORY-POOL-MIB
+        targetPythonClass: ZenPacks.daviswr.Cisco.IOS.Memory.MemoryPool
+        datasources:
+          DEFAULTS:
+            type: SNMP
+
+          ciscoMemoryPoolValid:
+            oid: .1.3.6.1.4.1.9.9.48.1.1.1.4
+            datapoints:
+              ciscoMemoryPoolValid:
+                description: Whether or not the objects contain acucrate data
+                rrdtype: GAUGE
+
+          ciscoMemoryPoolUsed:
+            oid: .1.3.6.1.4.1.9.9.48.1.1.1.5
+            datapoints:
+              ciscoMemoryPoolUsed:
+                description: The number of bytes from the memory pool that are currently in use
+                rrdtype: GAUGE
+
+          ciscoMemoryPoolFree:
+            oid: .1.3.6.1.4.1.9.9.48.1.1.1.6
+            datapoints:
+              ciscoMemoryPoolFree:
+                description: The number of bytes from the memory pool that are currently unused
+                rrdtype: GAUGE
+
+          ciscoMemoryPoolLargestFree:
+            oid: .1.3.6.1.4.1.9.9.48.1.1.1.7
+            datapoints:
+              ciscoMemoryPoolLargestFree:
+                description: The largest number of contiguous bytes from the memory pool that are currently unused
+                rrdtype: GAUGE
+
+        thresholds:
+          Valid:
+            type: MinMaxThreshold
+            enabled: true
+            severity: 4
+            eventClass: /HW/Memory/Pool
+            minval: 1
+            maxval: 1
+            dsnames:
+              - ciscoMemoryPoolValid_ciscoMemoryPoolValid
+
+        graphs:
+          DEFAULTS:
+            height: 100
+            width: 500
+            units: bytes
+            base: true
+            miny: 0
+
+          Utilization:
+            graphpoints:
+              DEFAULTS:
+                lineType: AREA
+                stacked: true
+              Used:
+                dpName: ciscoMemoryPoolUsed_ciscoMemoryPoolUsed
+                colorindex: 0
+              Free:
+                dpName: ciscoMemoryPoolFree_ciscoMemoryPoolFree
+                color: cccccc
+
+          Largest Free Block:
+            graphpoints:
+              Largest Free:
+                dpName: ciscoMemoryPoolLargestFree_ciscoMemoryPoolLargestFree
+                lineType: LINE
+                lineWidth: 2
+                colorindex: 0
+
+event_classes:
+  /HW/Memory/Pool:
+    remove: true
+    description: Cisco IOS memory pools
+    transform: |-
+      from zenoss.protocols.protobufs import zep_pb2
+
+      if evt.eventKey.endswith('ciscoMemoryPoolValid|Valid'):
+          current = int(float(evt.current))
+
+          state_dict = {
+              1: 'accurate',
+              2: 'inaccurate',
+              }
+          status = state_dict.get(current, 'of unknown accuracy')
+          evt.summary = 'Memory pool measurement is {0}'.format(status)
+
+          evt.severity = zep_pb2.SEVERITY_CLEAR if 1 == current \
+              else zep_pb2.SEVERITY_ERROR
+
+          # Based on stock /Status/Perf class transform for iOperStatus events
+          if component is not None:
+              bool_dict = {1: True, 2: False}
+              if component.valid != bool_dict.get(current, False):
+                  @transact
+                  def updateDb():
+                      component.valid = bool_dict.get(current, False)
+                  updateDb()
