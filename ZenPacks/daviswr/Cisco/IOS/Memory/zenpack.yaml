@@ -147,7 +147,7 @@ event_classes:
           evt.severity = zep_pb2.SEVERITY_CLEAR if 1 == current \
               else zep_pb2.SEVERITY_ERROR
 
-          # Based on stock /Status/Perf class transform for iOperStatus events
+          # Based on stock /Status/Perf class transform for ifOperStatus events
           if component is not None:
               bool_dict = {1: True, 2: False}
               if component.valid != bool_dict.get(current, False):
