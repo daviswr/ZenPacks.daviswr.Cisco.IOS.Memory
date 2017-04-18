@@ -74,7 +74,8 @@ class CiscoMemoryPool(SnmpPlugin):
             log.debug('%s found memory pool: %s', self.name(), name)
 
             # Find the name of the alternate pool's index if index > 0
-            row['alternate'] = ciscoMemoryPoolTable.get(str(row['alt_idx']), {}).get('title', 'Yes') \
+            alt_row = ciscoMemoryPoolTable.get(str(row['alt_idx']), dict())
+            row['alternate'] = alt_row.get('title', 'Yes') \
                 if row.get('alt_idx', 0) > 0 \
                 else 'None'
 
