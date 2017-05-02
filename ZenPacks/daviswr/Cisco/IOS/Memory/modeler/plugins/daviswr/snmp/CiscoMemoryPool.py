@@ -9,6 +9,7 @@ from Products.DataCollector.plugins.CollectorPlugin \
 from Products.DataCollector.plugins.DataMaps \
     import MultiArgs, RelationshipMap, ObjectMap
 
+
 class CiscoMemoryPool(SnmpPlugin):
     maptype = 'MemoryPool'
     relname = 'memoryPools'
